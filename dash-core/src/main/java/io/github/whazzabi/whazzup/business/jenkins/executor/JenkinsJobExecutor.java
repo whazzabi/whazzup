@@ -1,0 +1,96 @@
+package io.github.whazzabi.whazzup.business.jenkins.executor;
+
+import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
+import io.github.whazzabi.whazzup.business.jenkins.JenkinsCheck;
+import io.github.whazzabi.whazzup.business.jenkins.JenkinsClient;
+import io.github.whazzabi.whazzup.business.jenkins.JenkinsServerConfiguration;
+import io.github.whazzabi.whazzup.business.jenkins.domain.*;
+import io.github.whazzabi.whazzup.presentation.State;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+
+
+@Service
+public class JenkinsJobExecutor {
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(JenkinsJobExecutor.class);
+
+    private final JenkinsClient jenkinsClient;
+
+    private final JenkinsJobToStateMapper stateMapper;
+
+    @Autowired
+    public JenkinsJobExecutor(JenkinsClient jenkinsClient, JenkinsJobToStateMapper stateMapper) {
+        this.jenkinsClient = jenkinsClient;
+        this.stateMapper = stateMapper;
+    }
+
+
+    public List<CheckResult> executeCheck(JenkinsJobInfo jobInfo, JenkinsCheck jenkinsCheck, BuildInfo buildInfo) {
+
+        final String jobName = jenkinsCheck.getName();
+
+        // load results from jenkins
+        final JenkinsBuildInfo lastCompletedBuildInfo;
+        final JenkinsBuildInfo lastBuildInfo;
+        final JenkinsServerConfiguration serverConfig = jenkinsCheck.getServerConfiguration();
+
+        try {
+            log.debug("Retrieving job result from jenkins url {}", jenkinsCheck.getJobUrl());
+
+            final Build lastCompletedBuild = jobInfo.getLastCompletedBuild();
+            lastCompletedBuildInfo = lastCompletedBuild != null ? jenkinsClient.queryApi(lastCompletedBuild.getUrl(), serverConfig, JenkinsBuildInfo.class) : null;
+
+            final Build lastBuild = jobInfo.getLastBuild();
+            lastBuildInfo = lastBuild != null ? jenkinsClient.queryApi(lastBuild.getUrl(), serverConfig, JenkinsBuildInfo.class) : null;
+
+            if (!jobInfo.isBuildable()) {
+                return Collections.emptyList();
+            }
+
+        } catch (Exception e) {
+            log.error("error fetching jenkins result: {}", jobName, e);
+            return Collections.singletonList(
+                    new CheckResult(State.RED, shortName(jenkinsCheck), "N/A", 0, 0, jenkinsCheck.getGroup())
+                            .withLink(jenkinsCheck.getJobUrl())
+                            .withTeams(jenkinsCheck.getTeams())
+                            .withCheckResultIdentifier(jenkinsCheck.getJobUrl() + "_" + jenkinsCheck.getName()));
+        }
+
+        int failedTestCount = 0;
+        int totalTestCount = 0;
+
+        if (lastCompletedBuildInfo != null) {
+            for (JenkinsBuildAction action : lastCompletedBuildInfo.getActions()) {
+                if (action.getFailCount() != null && action.getTotalCount() != null) {
+                    failedTestCount += action.getFailCount();
+                    totalTestCount += action.getTotalCount();
+                }
+            }
+        }
+
+        final String checkInfo = failedTestCount > 0 ? failedTestCount + "/" + totalTestCount : "" + totalTestCount;
+
+        final State state = stateMapper.identifyStatus(lastCompletedBuildInfo, failedTestCount, jobInfo);
+
+        CheckResult checkResult = new CheckResult(state, shortName(jenkinsCheck), checkInfo, totalTestCount, failedTestCount, jenkinsCheck.getGroup()).withLink(jenkinsCheck.getJobUrl()).withTeams(jenkinsCheck.getTeams());
+        if (lastBuildInfo != null && lastBuildInfo.isBuilding()) {
+            checkResult = checkResult.markRunning();
+        }
+        return Collections.singletonList(
+                checkResult.withCheckResultIdentifier(jenkinsCheck.getJobUrl() + "_" + jenkinsCheck.getName())
+        );
+    }
+
+
+    String shortName(JenkinsCheck check) {
+        if (check.getJenkinsJobNameMapper() != null) {
+            return check.getJenkinsJobNameMapper().map(check);
+        }
+        return check.getName();
+    }
+}
