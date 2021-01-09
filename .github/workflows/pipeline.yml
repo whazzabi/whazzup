@@ -7,7 +7,6 @@ on:
 
 jobs:
   build:
-    name: test and build
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -25,5 +24,12 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: verify
-        run: mvn --batch-mode --update-snapshots verify
+#      - name: mvn verify
+#        if: github.ref != 'refs/heads/master'
+#        run: mvn --batch-mode --update-snapshots verify
+
+      - name: mvn deploy
+#        if: github.ref == 'refs/heads/master'
+        run: mvn --batch-mode --update-snapshots deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
