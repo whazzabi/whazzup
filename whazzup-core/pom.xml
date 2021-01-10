@@ -11,7 +11,7 @@
         <relativePath></relativePath>
     </parent>
 
-    <groupId>io.github.whazzabi.whazzup</groupId>
+    <groupId>io.github.whazzabi</groupId>
     <artifactId>whazzup-core</artifactId>
     <version>1.0-SNAPSHOT</version>
 
