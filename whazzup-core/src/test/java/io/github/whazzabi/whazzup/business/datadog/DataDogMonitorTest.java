@@ -2,12 +2,12 @@ package io.github.whazzabi.whazzup.business.datadog;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 
 import java.io.ByteArrayInputStream;
@@ -123,7 +123,7 @@ public class DataDogMonitorTest {
 
     private DataDogMonitor monitorWithQuery(String query) {
         final DataDogMonitor dataDogMonitor = new DataDogMonitor();
-        Whitebox.setInternalState(dataDogMonitor, "query", query);
+        ReflectionTestUtils.setField(dataDogMonitor, "query", query);
         return dataDogMonitor;
     }
 }

@@ -9,7 +9,6 @@ import io.github.whazzabi.whazzup.presentation.State;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +32,11 @@ public class DataDogCheckExecutor implements CheckExecutor<DataDogCheck> {
     private final String DATADOG_API_URL = "https://app.datadoghq.com/api/v1";
     private final String DATADOG_MONITORS_ENDPOINT_URL = DATADOG_API_URL + "/monitor";
 
-    @Autowired
-    @Qualifier("exceptionSwallowingRestTemplate")
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+
+    public DataDogCheckExecutor(@Qualifier("exceptionSwallowingRestTemplate") RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @Override
     public List<CheckResult> executeCheck(DataDogCheck check) {
