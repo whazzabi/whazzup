@@ -13,9 +13,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@ComponentScan(basePackages = "de.axelspringer.ideas.tools.dash", excludeFilters = @ComponentScan.Filter(Configuration.class))
+@ComponentScan(basePackages = "io.github.whazzabi.whazzup", excludeFilters = @ComponentScan.Filter(Configuration.class))
 @Import({ClientConfig.class, JiraConfig.class, CloudWatchConfig.class})
-public class DashConfig {
+public class WhazzupConfig {
 
     @Bean
     public Gson gson() {

@@ -4,10 +4,19 @@ A dashboard for product teams. Focusing on whats wrong, hiding the noise.
 ![Example Screenshot](doc/example-dash-screenshot.png)
 
 * To run the example just run ``ideas-dash/dash-example/src/main/java/de/axelspringer/ideas/tools/dash/example/ExampleDash.java``
-* [You can find the example running here](http://asideas.de/ideas-dash-example/)
 
 ## Quickstart
-Create a Spring-Boot-Application like the one you can find in the dash-example-module
+Create a Spring-Boot-Application and add this dependency
+
+```xml
+<dependency>
+    <groupId>io.github.whazzabi</groupId>
+    <artifactId>whazzup-core</artifactId>
+    <version>${latest-whazzup-version}</version>
+</dependency>
+```
+
+See the [./whazzup-example]() module for an example.
 
 ## Terms
 * CheckResults can be grouped in the UI. Thats what Groups are for
