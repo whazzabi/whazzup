@@ -3,13 +3,8 @@ package io.github.whazzabi.whazzup.business.jenkins.executor;
 import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
 import io.github.whazzabi.whazzup.business.jenkins.JenkinsCheck;
 import io.github.whazzabi.whazzup.business.jenkins.JenkinsClient;
-import io.github.whazzabi.whazzup.business.jenkins.JenkinsServerConfiguration;
 import io.github.whazzabi.whazzup.business.jenkins.domain.*;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,18 +16,15 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class JenkinsPipelineExecutorTest {
 
     private final static String LAST_BUILD_URL = "/foo/lastbuild";
 
     private final static String LAST_SUCCESSFUL_BUILD_URL = "/foo/lastsuccessfulbuild";
 
-    @Mock
-    private JenkinsClient client;
+    private JenkinsClient client = mock(JenkinsClient.class);
 
-    @InjectMocks
-    private JenkinsPipelineExecutor executor;
+    private JenkinsPipelineExecutor executor = new JenkinsPipelineExecutor(client);
 
     private final Build lastSuccessfulBuild = new Build(LAST_SUCCESSFUL_BUILD_URL);
 
@@ -69,8 +61,7 @@ public class JenkinsPipelineExecutorTest {
     }
 
     private void initMockForUrl(String url, JenkinsPipelineBuildInfo buildInfo) {
-        when(client.queryWorkflowApi(eq(url), any(JenkinsServerConfiguration.class), eq(JenkinsPipelineBuildInfo.class)))
-                .thenReturn(buildInfo);
+        when(client.queryWorkflowApi(eq(url), any(), any())).thenReturn(buildInfo);
     }
 
     private JenkinsPipelineBuildInfo buildInfo(String... stages) {
