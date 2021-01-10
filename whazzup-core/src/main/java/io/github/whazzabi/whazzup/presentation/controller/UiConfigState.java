@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class UiConfigState {
 
 
-    @Value("${de.axelspringer.ideas.tools.dash.pagetitle:angel dust}")
+    @Value("${whazzup.pagetitle:angel dust}")
     private String title;
 
     private UiConfig uiConfig;

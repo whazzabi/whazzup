@@ -6,13 +6,10 @@ import io.github.whazzabi.whazzup.business.customization.Team;
 import io.github.whazzabi.whazzup.presentation.State;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -20,22 +17,18 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class DataDogCheckExecutorTest {
 
-    @Mock
-    private RestTemplate restTemplate;
+    private RestTemplate restTemplate = mock(RestTemplate.class);
 
     @InjectMocks
-    private DataDogCheckExecutor dataDogCheckExecutor;
+    private DataDogCheckExecutor dataDogCheckExecutor = new DataDogCheckExecutor(restTemplate);
 
     @Before
     public void beforeMethod() throws Exception {
-        doReturn(new ResponseEntity<>(HttpStatus.CONFLICT)).when(restTemplate).getForEntity(anyString(), anyObject());
+        lenient().doReturn(new ResponseEntity<>(HttpStatus.CONFLICT)).when(restTemplate).getForEntity(anyString(), anyObject());
     }
 
     @Test
@@ -105,7 +98,7 @@ public class DataDogCheckExecutorTest {
 
         assertEquals(State.RED, checkResult.getState());
         assertEquals("DataDog", checkResult.getName());
-        assertEquals("got http 502", checkResult.getInfo());
+        assertEquals("got http 502 BAD_GATEWAY", checkResult.getInfo());
         assertEquals(1, checkResult.getTeams().size());
         assertEquals(TestTeam.INSTANCE.getTeamName(), checkResult.getTeams().get(0));
     }
@@ -211,8 +204,8 @@ public class DataDogCheckExecutorTest {
 
     private DataDogMonitor dataDogMonitor(String name, String overallState) {
         DataDogMonitor monitor = new DataDogMonitor();
-        Whitebox.setInternalState(monitor, "name", name);
-        Whitebox.setInternalState(monitor, "overallState", overallState);
+        ReflectionTestUtils.setField(monitor, "name", name);
+        ReflectionTestUtils.setField(monitor, "overallState", overallState);
 
         return monitor;
     }
@@ -223,14 +216,14 @@ public class DataDogCheckExecutorTest {
         DataDogDowntime dataDogDowntime = new DataDogDowntime();
         dataDogDowntime.active = true;
 
-        Whitebox.setInternalState(monitor, "matchingDowntimes", new DataDogDowntime[]{ dataDogDowntime });
+        ReflectionTestUtils.setField(monitor, "matchingDowntimes", new DataDogDowntime[]{ dataDogDowntime });
         return monitor;
     }
 
     private DataDogMonitor enableNotifyNoData(DataDogMonitor monitor) {
         DataDogMonitorOptions options = new DataDogMonitorOptions();
-        Whitebox.setInternalState(options, "notifyNoData", true);
-        Whitebox.setInternalState(monitor, "options", options);
+        ReflectionTestUtils.setField(options, "notifyNoData", true);
+        ReflectionTestUtils.setField(monitor, "options", options);
         return monitor;
     }
 

@@ -12,30 +12,23 @@ import io.github.whazzabi.whazzup.presentation.State;
 import org.apache.http.auth.AuthenticationException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class JenkinsJobExecutorTest {
 
-    @Mock
-    private JenkinsClient jenkinsClient;
+    private JenkinsClient jenkinsClient = mock(JenkinsClient.class);
 
     private JenkinsJobExecutor jenkinsJobExecutor = new JenkinsJobExecutor(jenkinsClient, new JenkinsJobToStateMapper());
 
     @Before
     public void initMocks() throws Exception {
-        when(jenkinsClient.queryApi(anyString(), any(JenkinsServerConfiguration.class), eq(JenkinsJobInfo.class))).thenReturn(jenkinsJobInfo());
+        lenient().when(jenkinsClient.queryApi(anyString(), any(JenkinsServerConfiguration.class), eq(JenkinsJobInfo.class))).thenReturn(jenkinsJobInfo());
     }
 
     @Test
@@ -70,7 +63,7 @@ public class JenkinsJobExecutorTest {
 
     private JenkinsJobInfo jenkinsJobInfo() {
         JenkinsJobInfo jenkinsJobInfo = new JenkinsJobInfo();
-        Whitebox.setInternalState(jenkinsJobInfo, "buildable", true);
+        ReflectionTestUtils.setField(jenkinsJobInfo, "buildable", true);
         return jenkinsJobInfo;
     }
 

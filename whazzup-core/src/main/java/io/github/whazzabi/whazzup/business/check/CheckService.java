@@ -25,7 +25,7 @@ public class CheckService {
     @Autowired
     private List<CheckExecutor> checkExecutors;
 
-    @Value("${dash.iconsEnabled:true}")
+    @Value("${whazzup.iconsEnabled:true}")
     private boolean iconsEnabled;
 
     private int numberOfParallelTask = 8;
