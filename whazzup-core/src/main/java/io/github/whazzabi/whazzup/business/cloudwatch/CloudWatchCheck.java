@@ -1,5 +1,6 @@
 package io.github.whazzabi.whazzup.business.cloudwatch;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import io.github.whazzabi.whazzup.business.check.Check;
@@ -20,13 +21,23 @@ public class CloudWatchCheck extends Check {
             String name,
             Group group,
             List<Team> teams,
-            String awsRegion) {
+            String awsRegion,
+            AWSCredentialsProvider credentials) {
         super(name, group, teams);
         this.region = awsRegion;
         this.cloudWatch = AmazonCloudWatchClientBuilder
                 .standard()
                 .withRegion(awsRegion)
-                .build();;
+                .withCredentials(credentials)
+                .build();
+    }
+
+    public CloudWatchCheck(
+            String name,
+            Group group,
+            List<Team> teams,
+            String awsRegion) {
+        this(name, group, teams, awsRegion, null);
     }
 
     public AmazonCloudWatch getCloudWatch() {
