@@ -1,8 +1,11 @@
-package io.github.whazzabi.whazzup.business.github;
+package io.github.whazzabi.whazzup.business.github.pullrequest;
 
 import io.github.whazzabi.whazzup.business.check.Check;
 import io.github.whazzabi.whazzup.business.check.CheckExecutor;
 import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
+import io.github.whazzabi.whazzup.business.github.GithubConfig;
+import io.github.whazzabi.whazzup.business.github.api.GithubPullRequest;
+import io.github.whazzabi.whazzup.business.github.api.GithubRepo;
 import io.github.whazzabi.whazzup.presentation.State;
 import io.github.whazzabi.whazzup.util.CloseableHttpClientRestClient;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,22 +23,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class GithubCheckExecutor implements CheckExecutor<GithubCheck> {
+public class GithubPullRequestsCheckExecutor implements CheckExecutor<GithubPullRequestsCheck> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GithubCheckExecutor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GithubPullRequestsCheckExecutor.class);
 
     // This is also the max size from github!
     public static final int DEFAULT_PAGE_SIZE = 100;
-
-    // curl -u CanardSauvage:d280154eb8138e503707700bda4522695eb3a1ee "https://api.github.com/users/as-ideas/repos?access_token=d280154eb8138e503707700bda4522695eb3a1ee" | grep full_name
-    // curl -u CanardSauvage:d280154eb8138e503707700bda4522695eb3a1ee "https://api.github.com/orgs/as-ideas?access_token=d280154eb8138e503707700bda4522695eb3a1ee"
-    // curl -u CanardSauvage:d280154eb8138e503707700bda4522695eb3a1ee "https://api.github.com/orgs/as-ideas/repos?per_page=125&access_token=d280154eb8138e503707700bda4522695eb3a1ee" | grep full_name
 
     @Autowired
     private CloseableHttpClient closeableHttpClient;
 
     @Override
-    public List<CheckResult> executeCheck(GithubCheck check) {
+    public List<CheckResult> executeCheck(GithubPullRequestsCheck check) {
 
         LOG.info("Executing Github-Check: " + check.getName() + " for Github-Account " + check.githubFullyQualifiedName());
         List<CheckResult> checkResults = new ArrayList<>();
@@ -85,7 +84,7 @@ public class GithubCheckExecutor implements CheckExecutor<GithubCheck> {
      *
      * @param check
      */
-    private List<GithubRepo> readRepos(GithubCheck check) {
+    private List<GithubRepo> readRepos(GithubPullRequestsCheck check) {
         GithubConfig githubConfig = check.githubConfig();
 
         final CloseableHttpClientRestClient restClient = new CloseableHttpClientRestClient(closeableHttpClient)
@@ -119,7 +118,7 @@ public class GithubCheckExecutor implements CheckExecutor<GithubCheck> {
 
     @Override
     public boolean isApplicable(Check check) {
-        return check instanceof GithubCheck;
+        return check instanceof GithubPullRequestsCheck;
     }
 
 

@@ -1,12 +1,13 @@
-package io.github.whazzabi.whazzup.business.github;
+package io.github.whazzabi.whazzup.business.github.pullrequest;
 
 import io.github.whazzabi.whazzup.business.check.Check;
 import io.github.whazzabi.whazzup.business.customization.Group;
 import io.github.whazzabi.whazzup.business.customization.Team;
+import io.github.whazzabi.whazzup.business.github.GithubConfig;
 
 import java.util.List;
 
-public class GithubCheck extends Check {
+public class GithubPullRequestsCheck extends Check {
 
     private final GithubConfig githubConfig;
 
@@ -17,10 +18,10 @@ public class GithubCheck extends Check {
      */
     private String filterKeyword;
 
-    // eg. orgs/as-ideas or user/waschnick
+    // eg. orgs/whazzup or user/waschnick
     private String githubFullyQualifiedName;
 
-    public GithubCheck(String name, Group group, List<Team> teams, GithubConfig githubConfig, String githubFullyQualifiedName, String regexForMatchingRepoNames) {
+    public GithubPullRequestsCheck(String name, Group group, List<Team> teams, GithubConfig githubConfig, String githubFullyQualifiedName, String regexForMatchingRepoNames) {
         super(name, group, teams);
         this.githubConfig = githubConfig;
         this.regexForMatchingRepoNames = regexForMatchingRepoNames;
@@ -39,7 +40,7 @@ public class GithubCheck extends Check {
         return githubFullyQualifiedName;
     }
 
-    public GithubCheck withFilterKeyword(String filterKeyword) {
+    public GithubPullRequestsCheck withFilterKeyword(String filterKeyword) {
         this.filterKeyword = filterKeyword;
         return this;
     }
