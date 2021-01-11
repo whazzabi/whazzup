@@ -10,24 +10,24 @@ import java.util.regex.Pattern;
 
 public class PingdomCheck extends Check {
 
-    private final PingdomConfig githubConfig;
+    private final PingdomConfig pingdomConfig;
 
     private String regexForMatchingNames = "";
 
     private Pattern pattern;
 
-    public PingdomCheck(String name, Group group, Team team, PingdomConfig githubConfig, String regexForMatchingNames) {
-        this(name, group, Collections.singletonList(team), githubConfig, regexForMatchingNames);
+    public PingdomCheck(String name, Group group, Team team, PingdomConfig pingdomConfig, String regexForMatchingNames) {
+        this(name, group, Collections.singletonList(team), pingdomConfig, regexForMatchingNames);
     }
 
-    public PingdomCheck(String name, Group group, List<Team> teams, PingdomConfig githubConfig, String regexForMatchingNames) {
+    public PingdomCheck(String name, Group group, List<Team> teams, PingdomConfig pingdomConfig, String regexForMatchingNames) {
         super(name, group, teams);
-        this.githubConfig = githubConfig;
+        this.pingdomConfig = pingdomConfig;
         this.regexForMatchingNames = regexForMatchingNames;
     }
 
     public PingdomConfig pingdomConfig() {
-        return githubConfig;
+        return pingdomConfig;
     }
 
     public String regexForMatchingRepoNames() {

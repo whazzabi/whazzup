@@ -31,11 +31,9 @@ public class PingdomCheckExecutor implements CheckExecutor<PingdomCheck> {
 
 
             final CloseableHttpClientRestClient restClient = new CloseableHttpClientRestClient(closeableHttpClient)
-                    .withCredentials(config.userName, config.password)
-                    .withHeader("App-Key", config.appKey)
-                    .withHeader("Account-Email", config.accountEmail);
+                    .withHeader("Authorization", "Bearer " + config.apiKey);
 
-            String answer = restClient.get("https://api.pingdom.com/api/2.0/checks");
+            String answer = restClient.get("https://api.pingdom.com/api/3.1/checks");
 
 
             PingdomAnswerWrapper pingdomAnswerWrapper = objectMapper.readValue(answer, PingdomAnswerWrapper.class);
@@ -56,7 +54,7 @@ public class PingdomCheckExecutor implements CheckExecutor<PingdomCheck> {
         }
 
         return new CheckResult(state, pingdomAnswer.status + ": " + pingdomAnswer.name, pingdomAnswer.hostname, 1, 1, check.getGroup())
-                .withLink("https://my.pingdom.com/newchecks/checks#check=" + pingdomAnswer.id)
+                .withLink("https://my.pingdom.com/app/reports/uptime#check=" + pingdomAnswer.id)
                 .withTeams(check.getTeams());
     }
 
