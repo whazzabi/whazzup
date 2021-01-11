@@ -104,6 +104,7 @@ public class CloseableHttpClientRestClient {
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
                 if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     String result = EntityUtils.toString(httpResponse.getEntity());
+                    LOG.debug("HTTP response for url {}: {}", url, result);
                     if (clazz == String.class) {
                         return (T) result;
                     } else {
