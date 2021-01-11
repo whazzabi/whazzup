@@ -31,6 +31,8 @@ public class Fields {
      */
     private CustomField customfield_11400;
 
+    private Project project;
+
     private Assignee assignee;
 
     private Priority priority;
@@ -91,6 +93,14 @@ public class Fields {
 
     public void setCustomfield_11400(CustomField customfield_11400) {
         this.customfield_11400 = customfield_11400;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public Assignee getAssignee() {
