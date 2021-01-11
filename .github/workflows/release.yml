@@ -1,12 +1,8 @@
 name: release
-#on:
-#  release:
-#    types:
-#      - created
 on:
-  push:
-    branches:
-      - publish-ossrh
+  release:
+    types:
+      - released
 
 
 # https://zambrovski.medium.com/foss-ci-cd-with-github-actions-c65c37236c19
@@ -40,7 +36,7 @@ jobs:
         run: echo ${{secrets.GPG_SECRET_KEYS}} | base64 --decode | gpg --import --no-tty --batch --yes
 
       - name: set version
-        run: mvn --batch-mode versions:set -DnewVersion=0.0.1
+        run: mvn --batch-mode versions:set -DnewVersion=$GITHUB_REF
 
       - name: mvn deploy
         run: mvn --batch-mode --update-snapshots deploy -DskipExamples -Prelease -Dgpg.keyname=${{secrets.GPG_KEYNAME}} -Dgpg.passphrase=${{secrets.GPG_PASSPHRASE}}

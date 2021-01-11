@@ -7,7 +7,7 @@
 
     <groupId>io.github.whazzabi</groupId>
     <artifactId>whazzup-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>latest-SNAPSHOT</version>
 
     <name>${project.artifactId} : ${project.version}</name>
     <description>A dashboard for product teams. Focusing on whats wrong, hiding the noise.</description>
