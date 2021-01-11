@@ -13,13 +13,6 @@
     <description>A dashboard for product teams. Focusing on whats wrong, hiding the noise.</description>
     <url>https://github.com/whazzabi/whazzup</url>
 
-    <scm>
-        <connection>scm:git:https://github.com/whazzabi/whazzup.git</connection>
-        <url>scm:git:https://github.com/whazzabi/whazzup.git</url>
-        <developerConnection>scm:git:https://github.com/whazzabi/whazzup.git</developerConnection>
-        <tag>HEAD</tag>
-    </scm>
-
     <modules>
         <module>whazzup-core</module>
         <!-- whazzup-example is added via profiles (see below) -->
@@ -231,5 +224,24 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/whazzabi/whazzup.git</connection>
+        <url>scm:git:https://github.com/whazzabi/whazzup.git</url>
+        <developerConnection>scm:git:https://github.com/whazzabi/whazzup.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>gaffa</name>
+        </developer>
+        <developer>
+            <name>ulich</name>
+        </developer>
+        <developer>
+            <name>Waschnick</name>
+        </developer>
+    </developers>
 
 </project>
