@@ -1,13 +1,12 @@
-name: pipeline
+name: verify
 on:
   push:
     branches:
       - master
-  pull_request: {}
+  pull_request: { }
 
 jobs:
-  build:
-    name: test and build
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -25,5 +24,5 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: verify
+      - name: mvn verify
         run: mvn --batch-mode --update-snapshots verify
