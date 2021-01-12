@@ -36,7 +36,7 @@ jobs:
         run: echo ${{secrets.GPG_SECRET_KEYS}} | base64 --decode | gpg --import --no-tty --batch --yes
 
       - name: set version
-        run: mvn --batch-mode versions:set -DnewVersion=$GITHUB_REF
+        run: mvn --batch-mode versions:set -DnewVersion=${{ github.event.release.tag_name }}
 
       - name: mvn deploy
         run: mvn --batch-mode --update-snapshots deploy -DskipExamples -Prelease -Dgpg.keyname=${{secrets.GPG_KEYNAME}} -Dgpg.passphrase=${{secrets.GPG_PASSPHRASE}}
