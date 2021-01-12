@@ -2,7 +2,7 @@ name: release
 on:
   release:
     types:
-      - published
+      - created
 
 
 # https://zambrovski.medium.com/foss-ci-cd-with-github-actions-c65c37236c19
