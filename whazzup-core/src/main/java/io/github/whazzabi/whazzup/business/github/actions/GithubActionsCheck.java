@@ -1,4 +1,4 @@
-package io.github.whazzabi.whazzup.business.github.pullrequest;
+package io.github.whazzabi.whazzup.business.github.actions;
 
 import io.github.whazzabi.whazzup.business.check.Check;
 import io.github.whazzabi.whazzup.business.customization.Group;
@@ -7,23 +7,20 @@ import io.github.whazzabi.whazzup.business.github.GithubConfig;
 
 import java.util.List;
 
-public class GithubPullRequestsCheck extends Check {
+public class GithubActionsCheck extends Check {
 
     private final GithubConfig githubConfig;
 
-    private String repoNameRegex = "";
+    private final String repoNameRegex;
 
-    /**
-     * if specified the pr results will be filtered down to prs containing this keyword
-     */
-    private String filterKeyword;
+    private BranchesOfRepositorySupplier branchesOfRepository = new MainBranchSupplier();
 
     /**
      * eg. orgs/whazzup or user/waschnick
      */
     private final String githubFullyQualifiedName;
 
-    public GithubPullRequestsCheck(String name, Group group, List<Team> teams, GithubConfig githubConfig, String githubFullyQualifiedName, String repoNameRegex) {
+    public GithubActionsCheck(String name, Group group, List<Team> teams, GithubConfig githubConfig, String githubFullyQualifiedName, String repoNameRegex) {
         super(name, group, teams);
         this.githubConfig = githubConfig;
         this.repoNameRegex = repoNameRegex;
@@ -38,17 +35,17 @@ public class GithubPullRequestsCheck extends Check {
         return repoNameRegex;
     }
 
-    public String githubFullyQualifiedName() {
-        return githubFullyQualifiedName;
-    }
-
-    public GithubPullRequestsCheck withFilterKeyword(String filterKeyword) {
-        this.filterKeyword = filterKeyword;
+    public GithubActionsCheck withBranchesOfRepository(BranchesOfRepositorySupplier branchesOfRepository) {
+        this.branchesOfRepository = branchesOfRepository;
         return this;
     }
 
-    public String getFilterKeyword() {
-        return filterKeyword;
+    public BranchesOfRepositorySupplier branchesOfRepository() {
+        return branchesOfRepository;
+    };
+
+    public String githubFullyQualifiedName() {
+        return githubFullyQualifiedName;
     }
 
     @Override

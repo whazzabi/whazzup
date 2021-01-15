@@ -4,122 +4,73 @@ import io.github.whazzabi.whazzup.business.check.Check;
 import io.github.whazzabi.whazzup.business.check.CheckExecutor;
 import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
 import io.github.whazzabi.whazzup.business.github.GithubConfig;
-import io.github.whazzabi.whazzup.business.github.api.GithubPullRequest;
-import io.github.whazzabi.whazzup.business.github.api.GithubRepo;
+import io.github.whazzabi.whazzup.business.github.common.GithubClient;
+import io.github.whazzabi.whazzup.business.github.common.api.GithubPullRequest;
+import io.github.whazzabi.whazzup.business.github.common.api.GithubRepo;
 import io.github.whazzabi.whazzup.presentation.State;
-import io.github.whazzabi.whazzup.util.CloseableHttpClientRestClient;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class GithubPullRequestsCheckExecutor implements CheckExecutor<GithubPullRequestsCheck> {
 
     private static final Logger LOG = LoggerFactory.getLogger(GithubPullRequestsCheckExecutor.class);
 
-    // This is also the max size from github!
-    public static final int DEFAULT_PAGE_SIZE = 100;
+    private final GithubClient githubClient;
 
-    @Autowired
-    private CloseableHttpClient closeableHttpClient;
+    public GithubPullRequestsCheckExecutor(GithubClient githubClient) {
+        this.githubClient = githubClient;
+    }
 
     @Override
     public List<CheckResult> executeCheck(GithubPullRequestsCheck check) {
+        LOG.info("Executing Github-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
 
-        LOG.info("Executing Github-Check: " + check.getName() + " for Github-Account " + check.githubFullyQualifiedName());
+        GithubConfig githubConfig = check.githubConfig();
         List<CheckResult> checkResults = new ArrayList<>();
 
-        for (GithubRepo repo : filterRepos(readRepos(check), check.regexForMatchingRepoNames())) {
-
-            List<GithubPullRequest> githubPullRequests = Arrays.asList(readPullRequests(check.githubConfig(), repo));
-
-            // ugly :)
-            if (StringUtils.hasLength(check.getFilterKeyword())) {
-                githubPullRequests = githubPullRequests.stream().filter(githubPullRequest -> githubPullRequest.title.toLowerCase().contains(check.getFilterKeyword().toLowerCase())).collect(Collectors.toList());
-            }
-
-            for (GithubPullRequest pullRequest : githubPullRequests) {
-                String assigneeName = pullRequest.assignee == null ? "?" : pullRequest.assignee.login;
-                State state = stateOfPullRequest(pullRequest);
-                final CheckResult checkResult = new CheckResult(state, "[" + repo.name + "] " + pullRequest.title, " [" + assigneeName + "]", 1, 1, check.getGroup());
-                checkResult.withLink(pullRequest.html_url);
-                checkResult.withTeams(check.getTeams());
-                checkResults.add(checkResult);
-            }
+        List<GithubRepo> repositories = githubClient.getRepositories(check.githubFullyQualifiedName(), check.repoNameRegex(), githubConfig);
+        for (GithubRepo repo : repositories) {
+            checkResults.addAll(checkRepository(check, githubConfig, repo));
         }
-        LOG.trace("Finished Github-Check. Results: " + checkResults.size());
+        LOG.trace("Finished {}. Results: {}", check.getName(), checkResults.size());
         return checkResults;
     }
 
-    private List<GithubRepo> filterRepos(List<GithubRepo> githubRepos, String regexForMatchingRepoNames) {
-        List<GithubRepo> result = new ArrayList<>();
+    private List<CheckResult> checkRepository(GithubPullRequestsCheck check, GithubConfig githubConfig, GithubRepo repo) {
+        boolean hasFilterKeyword = StringUtils.isBlank(check.getFilterKeyword());
 
-        Pattern pattern = Pattern.compile(regexForMatchingRepoNames);
-        for (GithubRepo githubRepo : githubRepos) {
-            Matcher matcher = pattern.matcher(githubRepo.name);
-            if (matcher.matches()) {
-                result.add(githubRepo);
-            }
-        }
-        LOG.info("Found " + result.size() + " (from " + githubRepos.size() + " repos overall) matching Repos for RegEx '" + regexForMatchingRepoNames + "'");
-        return result;
+        return githubClient.getPullRequests(githubConfig, repo).stream()
+                .filter(pr -> {
+                    if (hasFilterKeyword) {
+                        return true;
+                    }
+                    return StringUtils.containsIgnoreCase(pr.title, check.getFilterKeyword());
+                })
+                .map(pullRequest -> {
+                    String assigneeName = pullRequest.assignee == null ? "?" : pullRequest.assignee.login;
+                    State state = stateOfPullRequest(pullRequest);
+                    final CheckResult checkResult = new CheckResult(state, "[" + repo.name + "] " + pullRequest.title, " [" + assigneeName + "]", 1, 1, check.getGroup());
+                    checkResult.withLink(pullRequest.html_url);
+                    checkResult.withTeams(check.getTeams());
+                    return checkResult;
+                })
+                .collect(toList());
     }
 
     private State stateOfPullRequest(GithubPullRequest pullRequest) {
         return pullRequest == null ? State.RED : State.YELLOW;
     }
 
-    /**
-     * HINT: The maximum page size seems to be 100. So we need to iterate over all pages.
-     *
-     * @param check
-     */
-    private List<GithubRepo> readRepos(GithubPullRequestsCheck check) {
-        GithubConfig githubConfig = check.githubConfig();
-
-        final CloseableHttpClientRestClient restClient = new CloseableHttpClientRestClient(closeableHttpClient)
-                .withCredentials(githubConfig.githubUserName(), githubConfig.githubUserPassword())
-                .withQueryParameter("per_page", "" + DEFAULT_PAGE_SIZE);
-
-
-        List<GithubRepo> result = new ArrayList<>();
-
-        boolean hasNextPage = true;
-        int currentPage = 1;
-        while (hasNextPage) {
-            restClient.setQueryParameter("page", "" + currentPage);
-
-            GithubRepo[] tempResult = restClient.get("https://api.github.com/" + check.githubFullyQualifiedName() + "/repos", GithubRepo[].class);
-            result.addAll(Arrays.asList(tempResult));
-
-            hasNextPage = tempResult.length == DEFAULT_PAGE_SIZE;
-            currentPage++;
-        }
-
-        return result;
-    }
-
-    private GithubPullRequest[] readPullRequests(GithubConfig githubConfig, GithubRepo repo) {
-        final CloseableHttpClientRestClient restClient = new CloseableHttpClientRestClient(closeableHttpClient)
-                .withCredentials(githubConfig.githubUserName(), githubConfig.githubUserPassword());
-
-        return restClient.get(repo.url + "/pulls", GithubPullRequest[].class);
-    }
-
     @Override
     public boolean isApplicable(Check check) {
         return check instanceof GithubPullRequestsCheck;
     }
-
-
 }
