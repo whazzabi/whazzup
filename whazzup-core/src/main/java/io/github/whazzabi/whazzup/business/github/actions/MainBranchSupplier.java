@@ -6,7 +6,7 @@ import java.util.List;
 public class MainBranchSupplier implements BranchesOfRepositorySupplier {
 
     @Override
-    public List<String> getBranchesOfOrganization(String repositoryName) {
+    public List<String> get(String repositoryName) {
         return Collections.singletonList("main");
     }
 }

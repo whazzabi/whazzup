@@ -9,7 +9,6 @@ import io.github.whazzabi.whazzup.util.CloseableHttpClientRestClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -27,8 +26,11 @@ public class GithubClient {
     // This is also the max size from github!
     public static final int DEFAULT_PAGE_SIZE = 100;
 
-    @Autowired
-    private CloseableHttpClient closeableHttpClient;
+    private final CloseableHttpClient closeableHttpClient;
+
+    public GithubClient(CloseableHttpClient closeableHttpClient) {
+        this.closeableHttpClient = closeableHttpClient;
+    }
 
     public List<GithubRepo> getRepositories(String fullyQualifiedName, String repoNameRegex, GithubConfig config) {
         List<GithubRepo> allRepos = getRepositories(fullyQualifiedName, config);

@@ -45,7 +45,7 @@ public class GithubActionsCheckExecutor implements CheckExecutor<GithubActionsCh
     }
 
     private List<CheckResult> checkRepository(GithubRepo repo, GithubActionsCheck check, GithubConfig githubConfig) {
-        List<String> branches = check.branchesOfRepository().getBranchesOfOrganization(repo.name);
+        List<String> branches = check.branchesOfRepository().get(repo.name);
 
         return branches.stream()
                 .map(branch -> githubClient.getLastWorkflowRunOfBranch(githubConfig, repo, branch))

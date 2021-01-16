@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface BranchesOfRepositorySupplier {
 
-    List<String> getBranchesOfOrganization(String repositoryName);
+    List<String> get(String repositoryName);
 }
