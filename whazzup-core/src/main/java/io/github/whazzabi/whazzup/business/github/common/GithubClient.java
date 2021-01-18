@@ -1,10 +1,7 @@
 package io.github.whazzabi.whazzup.business.github.common;
 
 import io.github.whazzabi.whazzup.business.github.GithubConfig;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubPullRequest;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubRepo;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRun;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRunsResponse;
+import io.github.whazzabi.whazzup.business.github.common.api.*;
 import io.github.whazzabi.whazzup.util.CloseableHttpClientRestClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
@@ -16,7 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 public class GithubClient {
@@ -66,16 +64,26 @@ public class GithubClient {
         return Arrays.asList(restClient.get(repo.url + "/pulls", GithubPullRequest[].class));
     }
 
-    public Optional<GithubWorkflowRun> getLastWorkflowRunOfBranch(GithubConfig githubConfig, GithubRepo repo, String branch) {
+    public List<GithubWorkflow> getActiveWorkflowsOfRepo(GithubConfig githubConfig, GithubRepo repo) {
+        final CloseableHttpClientRestClient restClient = client(githubConfig);
+
+        GithubWorkflowsResponse response = restClient.get(repo.url + "/actions/workflows", GithubWorkflowsResponse.class);
+        return response.workflows.stream()
+                .filter(wf -> "active".equals(wf.state))
+                .collect(toList());
+    }
+
+    public List<GithubWorkflowRun> getLastWorkflowRunsOfBranch(GithubConfig githubConfig, GithubRepo repo, List<GithubWorkflow> workflows, String branch) {
         final CloseableHttpClientRestClient restClient = client(githubConfig);
         restClient.setQueryParameter("branch", branch);
-        restClient.setQueryParameter("per_page", "1");
 
         GithubWorkflowRunsResponse response = restClient.get(repo.url + "/actions/runs", GithubWorkflowRunsResponse.class);
-        if (response.workflow_runs.size() == 0) {
-            return Optional.empty();
-        }
-        return Optional.of(response.workflow_runs.get(0));
+
+        return workflows.stream()
+                .map(response::findLastRunByWorkflow)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(toList());
     }
 
     private CloseableHttpClientRestClient client(GithubConfig githubConfig) {
@@ -88,7 +96,7 @@ public class GithubClient {
 
         List<GithubRepo> result = githubRepos.stream()
                 .filter(repo -> pattern.matcher(repo.name).matches())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         LOG.info("Found " + result.size() + " (from " + githubRepos.size() + " repos overall) matching Repos for RegEx '" + repoNameRegex + "'");
         return result;
