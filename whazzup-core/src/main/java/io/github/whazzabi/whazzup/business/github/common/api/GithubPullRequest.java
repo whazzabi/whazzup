@@ -1,4 +1,4 @@
-package io.github.whazzabi.whazzup.business.github.api;
+package io.github.whazzabi.whazzup.business.github.common.api;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
