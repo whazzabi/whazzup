@@ -1,9 +1,11 @@
 # whazzup
-A dashboard for product teams. Focusing on whats wrong, hiding the noise.
+A dashboard for product teams. Focusing on whats wrong, hiding the noise. 
+
+This is the successor of https://github.com/as-ideas/ideas-dash. ideas-dash is no longer being maintained.
 
 ![Example Screenshot](doc/example-dash-screenshot.png)
 
-* To run the example just run ``ideas-dash/dash-example/src/main/java/de/axelspringer/ideas/tools/dash/example/ExampleDash.java``
+* To run the example just run [./whazzup-example/src/main/java/io/github/whazzabi/whazzup/example/ExampleDash.java]()
 
 ## Quickstart
 Create a Spring-Boot-Application and add this dependency
