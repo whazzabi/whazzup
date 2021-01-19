@@ -6,6 +6,7 @@ import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
 import io.github.whazzabi.whazzup.business.github.GithubConfig;
 import io.github.whazzabi.whazzup.business.github.common.GithubClient;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubRepo;
+import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflow;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRun;
 import io.github.whazzabi.whazzup.presentation.State;
 import org.slf4j.Logger;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,17 +47,18 @@ public class GithubActionsCheckExecutor implements CheckExecutor<GithubActionsCh
     private List<CheckResult> checkRepository(GithubRepo repo, GithubActionsCheck check, GithubConfig githubConfig) {
         List<String> branches = check.branchesOfRepository().get(repo.name);
 
+        List<GithubWorkflow> workflows = githubClient.getActiveWorkflowsOfRepo(githubConfig, repo);
+
         return branches.stream()
-                .map(branch -> githubClient.getLastWorkflowRunOfBranch(githubConfig, repo, branch))
-                .filter(Optional::isPresent)
-                .map(run -> toCheckResult(run.get(), repo, check))
+                .flatMap(branch -> githubClient.getLastWorkflowRunsOfBranch(githubConfig, repo, workflows, branch).stream())
+                .map(run -> toCheckResult(run, repo, check))
                 .collect(Collectors.toList());
     }
 
     private CheckResult toCheckResult(GithubWorkflowRun run, GithubRepo repo, GithubActionsCheck check) {
         String name = repo.name + "/" + run.head_branch;
         State state = stateOfRun(run);
-        return new CheckResult(state, name, "run " + run.conclusion, 1, 0, check.getGroup())
+        return new CheckResult(state, name, run.name, 1, 0, check.getGroup())
                 .withLink(run.html_url);
     }
 

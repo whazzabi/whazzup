@@ -6,14 +6,15 @@ import io.github.whazzabi.whazzup.business.customization.Group;
 import io.github.whazzabi.whazzup.business.github.GithubConfig;
 import io.github.whazzabi.whazzup.business.github.common.GithubClient;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubRepo;
+import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflow;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRun;
 import io.github.whazzabi.whazzup.presentation.State;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,6 +26,7 @@ public class GithubActionsCheckExecutorTest {
 
     public static final String ORG = "orgs/whazzabi";
     public static final GithubConfig GITHUB_CONFIG = new GithubConfig("username", "password");
+    public static final String WORKFLOW_NAME = "workflowName";
 
     private GithubClient client = mock(GithubClient.class);
     private GithubActionsCheckExecutor executor = new GithubActionsCheckExecutor(client);
@@ -44,13 +46,13 @@ public class GithubActionsCheckExecutorTest {
         assertThat(checkResults.size()).isEqualTo(3);
         assertThat(checkResults.get(0).getState()).isEqualTo(State.GREEN);
         assertThat(checkResults.get(0).getName()).isEqualTo("repo1/main");
-        assertThat(checkResults.get(0).getInfo()).isEqualTo("run success");
+        assertThat(checkResults.get(0).getInfo()).isEqualTo(WORKFLOW_NAME);
         assertThat(checkResults.get(1).getState()).isEqualTo(State.RED);
         assertThat(checkResults.get(1).getName()).isEqualTo("repo2/main");
-        assertThat(checkResults.get(1).getInfo()).isEqualTo("run failure");
+        assertThat(checkResults.get(1).getInfo()).isEqualTo(WORKFLOW_NAME);
         assertThat(checkResults.get(2).getState()).isEqualTo(State.GREY);
         assertThat(checkResults.get(2).getName()).isEqualTo("repo3/main");
-        assertThat(checkResults.get(2).getInfo()).isEqualTo("run cancelled");
+        assertThat(checkResults.get(2).getInfo()).isEqualTo(WORKFLOW_NAME);
     }
 
     @Test
@@ -102,20 +104,49 @@ public class GithubActionsCheckExecutorTest {
         assertThat(checkResults.get(1).getName()).isEqualTo("repo1/develop");
         assertThat(checkResults.get(2).getName()).isEqualTo("repo2/main");
     }
-    
-    private GithubRepo repository(String name, WorkflowRunOfBranch ...workflowRunOfBranches) {
+
+    @Test
+    public void multipleWorkflowsPerRepo() {
+        repositoriesExist(
+                repository("repo1", new WorkflowRunsOfBranch("main", asList(
+                        workflowRunOfWorkflow("main", "workflow1"),
+                        workflowRunOfWorkflow("main", "workflow2")
+                ))),
+                repository("repo2", successfullRunForBranch("main"))
+        );
+
+        GithubActionsCheck check = check(ORG, ".*");
+
+        List<CheckResult> checkResults = executor.executeCheck(check);
+
+        assertThat(checkResults.size()).isEqualTo(3);
+        assertThat(checkResults.get(0).getName()).isEqualTo("repo1/main");
+        assertThat(checkResults.get(0).getInfo()).isEqualTo("workflow1");
+        assertThat(checkResults.get(1).getName()).isEqualTo("repo1/main");
+        assertThat(checkResults.get(1).getInfo()).isEqualTo("workflow2");
+        assertThat(checkResults.get(2).getName()).isEqualTo("repo2/main");
+        assertThat(checkResults.get(2).getInfo()).isEqualTo(WORKFLOW_NAME);
+    }
+
+    private GithubRepo repository(String name, WorkflowRunsOfBranch... workflowRunsOfBranches) {
         GithubRepo repo = new GithubRepo();
         repo.name = name;
-        repo.url = "https://api.github.com/orgs/Egoditor/repos/";
-        for (WorkflowRunOfBranch workflowRunOfBranch: workflowRunOfBranches) {
-            when(client.getLastWorkflowRunOfBranch(eq(GITHUB_CONFIG), eq(repo), eq(workflowRunOfBranch.branch)))
-                    .thenReturn(workflowRunOfBranch.run);
+        repo.url = "https://api.github.com/orgs/whazzabi/repos/";
+
+        List<GithubWorkflow> workflows = singletonList(workflow());
+
+        when(client.getActiveWorkflowsOfRepo(eq(GITHUB_CONFIG), eq(repo)))
+                .thenReturn(workflows);
+
+        for (WorkflowRunsOfBranch workflowRunOfBranch : workflowRunsOfBranches) {
+            when(client.getLastWorkflowRunsOfBranch(eq(GITHUB_CONFIG), eq(repo), eq(workflows), eq(workflowRunOfBranch.branch)))
+                    .thenReturn(workflowRunOfBranch.runs);
         }
 
         return repo;
     }
 
-    private void repositoriesExist(GithubRepo ...repositories) {
+    private void repositoriesExist(GithubRepo... repositories) {
         when(client.getRepositories(eq(ORG), anyString(), eq(GITHUB_CONFIG))).thenReturn(asList(repositories));
     }
 
@@ -125,41 +156,56 @@ public class GithubActionsCheckExecutorTest {
         return new GithubActionsCheck("name", group, singletonList(new TestTeam()), githubConfig, fullyQualifiedName, repoNameRegex);
     }
 
-    public WorkflowRunOfBranch successfullRunForBranch(String branch) {
-        return new WorkflowRunOfBranch(branch, "success");
+    private GithubWorkflow workflow() {
+        GithubWorkflow workflow = new GithubWorkflow();
+        workflow.id = 123L;
+        workflow.state = "active";
+        return workflow;
     }
 
-    public WorkflowRunOfBranch failedRunForBranch(String branch) {
-        return new WorkflowRunOfBranch(branch, "failure");
+    private WorkflowRunsOfBranch successfullRunForBranch(String branch) {
+        return workflowRunOfBranch(branch, "success");
     }
 
-    public WorkflowRunOfBranch cancelledRunForBranch(String branch) {
-        return new WorkflowRunOfBranch(branch, "cancelled");
+    private WorkflowRunsOfBranch failedRunForBranch(String branch) {
+        return workflowRunOfBranch(branch, "failure");
     }
 
-    public WorkflowRunOfBranch noRunsForBranch(String branch) {
-        return new WorkflowRunOfBranch(branch, Optional.empty());
+    private WorkflowRunsOfBranch cancelledRunForBranch(String branch) {
+        return workflowRunOfBranch(branch, "cancelled");
     }
 
-    private static class WorkflowRunOfBranch {
+    private WorkflowRunsOfBranch noRunsForBranch(String branch) {
+        return new WorkflowRunsOfBranch(branch, emptyList());
+    }
+
+    private static WorkflowRunsOfBranch workflowRunOfBranch(String branch, String conclusion) {
+        return new WorkflowRunsOfBranch(branch, singletonList(workflowRun(branch, conclusion)));
+    }
+
+    private static GithubWorkflowRun workflowRun(String branch, String conclusion) {
+        GithubWorkflowRun run = new GithubWorkflowRun();
+        run.name = WORKFLOW_NAME;
+        run.head_branch = branch;
+        run.conclusion = conclusion;
+        return run;
+    }
+
+    private static GithubWorkflowRun workflowRunOfWorkflow(String branch, String workflowName) {
+        GithubWorkflowRun run = new GithubWorkflowRun();
+        run.name = workflowName;
+        run.head_branch = branch;
+        run.conclusion = "success";
+        return run;
+    }
+
+    private static class WorkflowRunsOfBranch {
         public String branch;
-        public Optional<GithubWorkflowRun> run;
+        public List<GithubWorkflowRun> runs;
 
-        public WorkflowRunOfBranch(String branch, String conclusion) {
+        public WorkflowRunsOfBranch(String branch, List<GithubWorkflowRun> run) {
             this.branch = branch;
-            this.run = Optional.of(workflowRun(branch, conclusion));
-        }
-
-        public WorkflowRunOfBranch(String branch, Optional<GithubWorkflowRun> run) {
-            this.branch = branch;
-            this.run = run;
-        }
-
-        private GithubWorkflowRun workflowRun(String branch, String conclusion) {
-            GithubWorkflowRun run = new GithubWorkflowRun();
-            run.head_branch = branch;
-            run.conclusion = conclusion;
-            return run;
+            this.runs = run;
         }
     }
 }
