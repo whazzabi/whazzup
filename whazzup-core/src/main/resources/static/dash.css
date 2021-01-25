@@ -1,5 +1,10 @@
 .dash-main-container {
     min-height: 100vh;
+    position: relative;
+}
+
+.options-toggle {
+    margin-left: 15px;
 }
 
 .check-group {

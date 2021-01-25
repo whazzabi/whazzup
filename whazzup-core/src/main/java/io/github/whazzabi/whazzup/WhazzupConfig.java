@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import io.github.whazzabi.whazzup.business.cloudwatch.CloudWatchConfig;
 import io.github.whazzabi.whazzup.business.jira.JiraConfig;
 import io.github.whazzabi.whazzup.config.ClientConfig;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableScheduling
 @ComponentScan(excludeFilters = @ComponentScan.Filter(Configuration.class))
+@ConfigurationPropertiesScan
 @Import({ClientConfig.class, JiraConfig.class, CloudWatchConfig.class})
 public class WhazzupConfig {
 

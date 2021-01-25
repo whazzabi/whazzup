@@ -1,0 +1,15 @@
+<li ng-class="{'divider': item.divider, 'dropdown': item.subMenu}">
+
+    <a ng-if="item.link" href="{{ item.link }}" target="_blank">
+        {{ item.label }}
+    </a>
+
+    <a ng-if="item.subMenu" href="#" class="dropdown-toggle" data-toggle="dropdown">
+        {{ item.label }} <span class="caret"></span>
+    </a>
+
+    <ul ng-if="item.subMenu" class="dropdown-menu">
+        <navbaritem ng-repeat="item in item.subMenu"></navbaritem>
+    </ul>
+
+</li>

@@ -4,7 +4,10 @@ import io.github.whazzabi.whazzup.business.check.checkresult.CheckResultComment;
 import io.github.whazzabi.whazzup.business.check.checkresult.CheckResultCommentRepository;
 import io.github.whazzabi.whazzup.business.customization.Team;
 import io.github.whazzabi.whazzup.business.customization.TeamProvider;
-import io.github.whazzabi.whazzup.presentation.*;
+import io.github.whazzabi.whazzup.presentation.UiInfo;
+import io.github.whazzabi.whazzup.presentation.UiInfoService;
+import io.github.whazzabi.whazzup.presentation.UiStateSummary;
+import io.github.whazzabi.whazzup.presentation.UiTeams;
 import org.apache.http.auth.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,14 +33,14 @@ public class DashController {
     private TeamProvider teamProvider;
 
     @Autowired
-    private UiConfigState uiConfigState;
+    private UiConfigPropertries uiConfigPropertries;
 
     @Autowired
     private CheckResultCommentRepository commentRepository;
 
     @RequestMapping(value = "/config", method = RequestMethod.GET)
-    public UiConfig config() {
-        return uiConfigState.get();
+    public UiConfigPropertries config() {
+        return uiConfigPropertries;
     }
 
     @RequestMapping(value = "/infos", method = RequestMethod.GET)
