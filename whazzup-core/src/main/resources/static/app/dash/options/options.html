@@ -1,4 +1,6 @@
-<div ng-click="config.showOptions=!config.showOptions">{{ config.showOptions ? 'hide options' : 'show options' }}</div>
+<div ng-click="config.showOptions=!config.showOptions" class="options-toggle">
+    {{ config.showOptions ? 'hide options' : 'show options' }}
+</div>
 <div ng-show="config.showOptions">
     <label class="team-label">
         <input type="checkbox" ng-model="config.showEmptyGroups"/> show empty groups

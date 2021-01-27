@@ -1,0 +1,19 @@
+whazzup:
+  pagetitle: testapp
+  iconsEnabled: true
+  navbar:
+    left:
+      - label: AWS
+        subMenu:
+          - label: Development
+            link: https://Your_Account_Alias_Dev.signin.aws.amazon.com/console/
+          - label: Staging
+            link: https://Your_Account_Alias_Staging.signin.aws.amazon.com/console/
+          - divider: true
+          - label: Production
+            link: https://Your_Account_Alias_Prod.signin.aws.amazon.com/console/
+      - label: Jira
+        link: https://Your_Atlassian_Id.atlassian.com
+    right:
+      - label: PagerDuty
+        link: https://Your_Pagerduty_Domain.pagerduty.com
