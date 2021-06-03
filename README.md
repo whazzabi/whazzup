@@ -1,5 +1,6 @@
 # whazzup
-A dashboard for product teams. Focusing on whats wrong, hiding the noise. 
+
+### A dashboard for product teams. Focusing on whats wrong, hiding the noise. 
 
 This is the successor of https://github.com/as-ideas/ideas-dash. ideas-dash is no longer being maintained.
 
@@ -20,9 +21,19 @@ Create a Spring-Boot-Application and add this dependency
 
 See the [./whazzup-example]() module for an example.
 
+CSS customization can be done by adding a file called `src/main/resources/static/custom.css`. 
+
+Currently two different designs are supported: 
+* Rows with more colors
+* Columns with a more minimalistic view
+
+You can switch the current design in the options (click 'show options')
+
+![Design with columns](doc/example-desgin-columns.png)
+
 ## Terms
-* CheckResults can be grouped in the UI. Thats what Groups are for
-* Teams are used as filters. This way many teams can share (no team specified) checks/results or have checks executed that only concern them and not interfere with other teams
+* CheckResults can be grouped in the UI. Thats what **Groups** are for
+* **Teams** are used as filters. This way many teams can share (no team specified) checks/results or have checks executed that only concern them and not interfere with other teams
 
 ## Supported Checks
 ### Jenkins
@@ -37,6 +48,11 @@ FabricCheck
 
 ### DataDog
 DataDog can be queried for monitors. Just provide DataDogChecks via a CheckProvider.
+
+### Github
+* Open and old pull requests
+* Failed Github Actions
+* Stale Branches
 
 ### Art-Tests
 Art is supported as well in theory. This was not used in a while and may prove unstable.
