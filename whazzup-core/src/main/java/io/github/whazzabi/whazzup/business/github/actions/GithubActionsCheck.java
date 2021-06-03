@@ -42,7 +42,7 @@ public class GithubActionsCheck extends Check {
 
     public BranchesOfRepositorySupplier branchesOfRepository() {
         return branchesOfRepository;
-    };
+    }
 
     public String githubFullyQualifiedName() {
         return githubFullyQualifiedName;

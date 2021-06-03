@@ -6,6 +6,7 @@ angular.module('dashapp')
             Persistence.init($scope, "config", {
                 selectedTeams: {},
                 showEmptyGroups: true,
+                aggregateAll: true,
                 hue: {},
                 showOptions: true
             });

@@ -7,5 +7,19 @@ angular.module('dashapp')
         directive.controllerAs = 'optionscontroller';
         directive.bindToController = true;
 
+        directive.controller = function ($scope, AppConfig) {
+            console.info("ASDF", $scope.config.design)
+            changeDesignTo($scope.config.design);
+
+            $scope.changeDesign = function () {
+                changeDesignTo($scope.config.design);
+            };
+        };
+
         return directive;
     });
+
+function changeDesignTo(newDesign) {
+    $("#design-script").remove();
+    $('head').append('<link id="design-script" rel="stylesheet" type="text/css" href="design-' + newDesign + '.css">');
+}
