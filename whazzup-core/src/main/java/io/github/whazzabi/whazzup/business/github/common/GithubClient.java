@@ -64,6 +64,17 @@ public class GithubClient {
         return Arrays.asList(restClient.get(repo.url + "/pulls", GithubPullRequest[].class));
     }
 
+    public List<GithubBranch> getBranches(GithubConfig githubConfig, GithubRepo repo) {
+        final CloseableHttpClientRestClient restClient = client(githubConfig);
+
+        return Arrays.asList(restClient.get(repo.url + "/branches", GithubBranch[].class));
+    }
+
+    public List<GithubBranchDetails> getDetailedBranches(GithubConfig githubConfig, GithubRepo repo) {
+        final CloseableHttpClientRestClient restClient = client(githubConfig);
+        return getBranches(githubConfig, repo).stream().map(branch -> restClient.get(branch.getDetailsUrl(), GithubBranchDetails.class)).collect(toList());
+    }
+
     public List<GithubWorkflow> getActiveWorkflowsOfRepo(GithubConfig githubConfig, GithubRepo repo) {
         final CloseableHttpClientRestClient restClient = client(githubConfig);
 

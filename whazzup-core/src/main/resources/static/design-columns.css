@@ -1,0 +1,100 @@
+body {
+    font-family: system-ui, sans-serif;
+}
+
+.checks {
+    display: grid;
+    padding: 0;
+}
+
+.check:hover .comments-form {
+    display: none !important;
+}
+
+.check {
+    max-width: 500px;
+    text-align: left;
+    margin: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-content-left {
+    max-width: none;
+    float: none;
+}
+
+.panel-content-left a > div:nth-child(2) {
+    display: none;
+}
+
+.panel-content-right {
+    float: none;
+}
+
+.dash-main-container {
+    background-image: none;
+    background-color: #fff !important;
+}
+
+.navbar-default {
+    background-image: none;
+    background-color: #fff !important;
+}
+
+.panel {
+    border-radius: 4px;
+    background: white;
+    border: 1px solid #ccc;
+    overflow: hidden;
+}
+
+.panel-body {
+    display: inline-flex;
+    gap: 2rem;
+    padding: 0;
+}
+
+.options-toggle {
+    margin: 0;
+    padding: 1rem 2rem 0 2rem;
+}
+
+.check-metainfo {
+    display: none;
+}
+
+.global-info {
+    top: 1rem;
+    right: 2.5rem;
+}
+
+.stage-info {
+    width: auto;
+    display: block;
+    text-align: center;
+    background-color: #f0f0f0 !important;
+    padding: 1rem 0;
+    border-bottom: 1px solid #ccc;
+}
+
+.stage-info > div:nth-child(3) {
+    display: none;
+}
+
+.stage-info.alert-danger {
+    background: rgb(252, 165, 165);
+}
+
+.stage-info.alert-danger {
+    background: rgb(252, 165, 165);
+}
+
+.stage-info.alert-warning {
+    background: rgb(252, 211, 77);
+}
+
+.stage-info .check-name {
+    color: black;
+}

@@ -3,13 +3,13 @@
 </div>
 <div ng-show="config.showOptions">
     <label class="team-label">
-        <input type="checkbox" ng-model="config.showEmptyGroups"/> show empty groups
+        <input type="checkbox" ng-model="config.showEmptyGroups" /> show empty groups
     </label>
     <label class="team-label">
-        <input type="checkbox" ng-model="config.aggregateAll"/> aggregate all green checks
+        <input type="checkbox" ng-model="config.aggregateAll" /> aggregate all green checks
     </label>
     <label class="team-label">
-        <input type="checkbox" ng-model="config.hue.enabled"/> hue
+        <input type="checkbox" ng-model="config.hue.enabled" /> hue
         <div ng-show="config.hue.enabled">
             URL <input type="text" size="12" ng-model="config.hue.url">
             key <input type="text" size="12" ng-model="config.hue.key">
@@ -17,6 +17,14 @@
         </div>
     </label>
     <label ng-repeat="team in teams" class="team-label">
-        <input type="checkbox" ng-model="config.selectedTeams[team]"/> {{ team }}
+        <input type="checkbox" ng-model="config.selectedTeams[team]" /> {{ team }}
+    </label>
+
+    <label for="design">
+        Design
+        <select name="design" id="design" ng-model="config.design" ng-change="changeDesign()">
+            <option value="rows">Rows</option>
+            <option value="columns">Columns</option>
+        </select>
     </label>
 </div>
