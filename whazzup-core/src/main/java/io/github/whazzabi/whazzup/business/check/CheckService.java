@@ -9,10 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
@@ -28,10 +26,15 @@ public class CheckService {
     @Value("${whazzup.iconsEnabled:true}")
     private boolean iconsEnabled;
 
+    private Map<Check, List<CheckResult>> CACHE = new ConcurrentHashMap<>();
+
     private int numberOfParallelTask = 8;
+    private long counterOfCheckRuns = 0;
 
     public List<CheckResult> check(List<Check> checks) {
         try {
+            // HINT: We are creating a custom ForkJoinPool and are submitting our parallelStream to it
+            // HINT2: The parallelStream normally uses ForkJoinPool.commonPool
             ForkJoinPool forkJoinPool = new ForkJoinPool(getNumberOfParallelTask());
             return forkJoinPool.submit(() ->
                     checks.parallelStream()
@@ -41,15 +44,29 @@ public class CheckService {
             ).get();
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            counterOfCheckRuns++;
         }
     }
 
     @SuppressWarnings("unchecked")
     private List<CheckResult> executeCheck(Check check) {
+        if (counterOfCheckRuns % check.runEachNthCheck() != 0) {
+            LOG.info("Returning CACHE and skipping check: " + check);
+            if (CACHE.containsKey(check)) {
+                return CACHE.get(check);
+            } else {
+                LOG.warn("CACHE empty for check: " + check);
+                CACHE.forEach((key, value) -> LOG.warn(" # CACHE-ENTRY: " + key));
+            }
+        }
+
         CheckExecutor checkExecutor = executor(check);
         try {
             List<CheckResult> checkResults = checkExecutor.executeCheck(check);
-            return decorateCheckResults(check, checkResults);
+            List<CheckResult> results = decorateCheckResults(check, checkResults);
+            CACHE.put(check, results);
+            return results;
         } catch (Exception e) {
             LOG.error("There are unhandled errors when performing check '{}' on stage '{}' for teams '{}'", check.getName(), check.getGroup(), check.getTeams());
             LOG.error(e.getMessage(), e);

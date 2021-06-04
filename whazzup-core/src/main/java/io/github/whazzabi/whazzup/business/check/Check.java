@@ -65,4 +65,8 @@ public class Check {
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
     }
+
+    public long runEachNthCheck() {
+        return 1;
+    }
 }

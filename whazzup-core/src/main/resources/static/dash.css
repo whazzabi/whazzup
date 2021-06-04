@@ -64,6 +64,14 @@
     color: #686868;
 }
 
+.alert-danger a {
+    color: #a94442;
+}
+
+a.check-name--wrapper {
+    display: inline-block;
+}
+
 .check-name {
     font-weight: bold;
 }

@@ -3,6 +3,8 @@ package io.github.whazzabi.whazzup.business.github.common.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GithubPullRequest {
 
@@ -24,6 +26,8 @@ public class GithubPullRequest {
     public String merged_at;
     public String merge_commit_sha;
     public GithubUser assignee;
+    public List<GithubUser> assignees;
+    public List<GithubUser> requested_reviewers;
     public String milestone;
     public String commits_url;
     public String review_comments_url;

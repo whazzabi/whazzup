@@ -183,4 +183,11 @@ public class CheckResult {
         this.description = description;
         return this;
     }
+
+    public CheckResult withInfo(String info) {
+        this.info = info;
+        return this;
+    }
+
+
 }

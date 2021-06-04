@@ -5,15 +5,17 @@ import io.github.whazzabi.whazzup.business.check.CheckExecutor;
 import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
 import io.github.whazzabi.whazzup.business.github.GithubConfig;
 import io.github.whazzabi.whazzup.business.github.common.GithubClient;
+import io.github.whazzabi.whazzup.business.github.common.api.GithubCommitAuthor;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubRepo;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflow;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRun;
 import io.github.whazzabi.whazzup.presentation.State;
+import io.github.whazzabi.whazzup.util.ConncurrentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,14 +35,16 @@ public class GithubActionsCheckExecutor implements CheckExecutor<GithubActionsCh
         LOG.info("Executing Github-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
 
         GithubConfig githubConfig = check.githubConfig();
-        List<CheckResult> checkResults = new ArrayList<>();
+        List<CheckResult> checkResults = new ConncurrentList<>();
 
-        List<GithubRepo> repositories = githubClient.getRepositories(check.githubFullyQualifiedName(), check.repoNameRegex(), githubConfig);
+        List<GithubRepo> repositories = githubClient.getRepositories(githubConfig, check.githubFullyQualifiedName(), check.githubRepositoryMatcher());
 
-        for (GithubRepo repo : repositories) {
+        repositories.parallelStream().forEach(repo -> {
             checkResults.addAll(checkRepository(repo, check, githubConfig));
-        }
+        });
+
         LOG.trace("Finished {}. Results: {}", check.getName(), checkResults.size());
+        checkResults.sort(Comparator.comparing(CheckResult::getName));
         return checkResults;
     }
 
@@ -49,16 +53,20 @@ public class GithubActionsCheckExecutor implements CheckExecutor<GithubActionsCh
 
         List<GithubWorkflow> workflows = githubClient.getActiveWorkflowsOfRepo(githubConfig, repo);
 
-        return branches.stream()
+        return branches.parallelStream()
                 .flatMap(branch -> githubClient.getLastWorkflowRunsOfBranch(githubConfig, repo, workflows, branch).stream())
+                .parallel()
                 .map(run -> toCheckResult(run, repo, check))
                 .collect(Collectors.toList());
     }
 
     private CheckResult toCheckResult(GithubWorkflowRun run, GithubRepo repo, GithubActionsCheck check) {
         String name = repo.name + "/" + run.head_branch;
+
+        GithubCommitAuthor author = run.head_commit.author != null ? run.head_commit.author : run.head_commit.committer;
+        String description = run.head_commit.message + " [" + author.name + "]";
         State state = stateOfRun(run);
-        return new CheckResult(state, name, run.name, 1, 0, check.getGroup())
+        return new CheckResult(state, name, description, 1, 0, check.getGroup())
                 .withLink(run.html_url);
     }
 

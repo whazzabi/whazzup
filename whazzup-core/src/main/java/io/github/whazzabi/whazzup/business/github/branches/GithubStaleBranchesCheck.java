@@ -65,4 +65,9 @@ public class GithubStaleBranchesCheck extends Check {
     public String getIconSrc() {
         return "assets/github-logo.png";
     }
+
+    @Override
+    public long runEachNthCheck() {
+        return 5;
+    }
 }

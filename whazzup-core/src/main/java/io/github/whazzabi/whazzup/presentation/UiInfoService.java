@@ -23,6 +23,8 @@ public class UiInfoService {
     // begin with an empty object. checks shall only be executed by the scheduler
     private UiInfo uiInfo = new UiInfo(applicationStartId);
 
+    private List<Check> checkCache = new ArrayList<>();
+
     @Autowired
     private List<CheckProvider> checkProviders;
 
@@ -36,7 +38,7 @@ public class UiInfoService {
         return uiInfo;
     }
 
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelay = 60_000)
     public void check() {
 
         // execute them
@@ -100,6 +102,7 @@ public class UiInfoService {
         }
         return newUiInfo;
     }
+
     State aggregate(State state1, State state2) {
 
         if (state1 == null) {
@@ -142,16 +145,19 @@ public class UiInfoService {
     }
 
     private List<Check> allChecks() {
+        if (checkCache.isEmpty()) {
+            List<Check> allChecks = new ArrayList<>();
+            checkProviders.forEach(checkProvider -> {
+                try {
+                    allChecks.addAll(checkProvider.provideChecks());
+                } catch (Exception e) {
+                    log.error("exception during check provider execution with provider: " + checkProvider, e);
+                    allChecks.add(new FailingCheck(checkProvider.getClass().getSimpleName(), e.getMessage()));
+                }
+            });
+            checkCache = allChecks;
+        }
 
-        List<Check> allChecks = new ArrayList<>();
-        checkProviders.forEach(checkProvider -> {
-            try {
-                allChecks.addAll(checkProvider.provideChecks());
-            } catch (Exception e) {
-                log.error("exception during check provider execution", e);
-                allChecks.add(new FailingCheck(checkProvider.getClass().getSimpleName(), e.getMessage()));
-            }
-        });
-        return allChecks;
+        return checkCache;
     }
 }

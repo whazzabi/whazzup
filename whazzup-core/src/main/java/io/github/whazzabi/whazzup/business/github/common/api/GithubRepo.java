@@ -68,6 +68,8 @@ public class GithubRepo {
     public Boolean has_pages;
     public Long forks_count;
     public String mirror_url;
+    public Boolean archived;
+    public Boolean disabled;
     public Long open_issues_count;
     public Long forks;
     public Long open_issues;

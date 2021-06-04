@@ -1,13 +1,13 @@
 <div class="panel-content-left">
     <!-- link if specified, div if not -->
-    <a ng-show="check.link" href="{{ check.link }}" target="_blank">
+    <a class="check-name--wrapper" ng-show="check.link" href="{{ check.link }}" target="_blank">
         <div class="check-name">{{ check.name }}</div>
-        <div ng-bind-html="check.info | limitTo : 25"></div>
+        <div ng-bind-html="check.info | limitTo : 50"></div>
     </a>
 
-    <div ng-hide="check.link">
+    <div class="check-name--wrapper" ng-hide="check.link">
         <div class="check-name">{{ check.name }}</div>
-        <div ng-bind-html="check.info | limitTo : 25"></div>
+        <div ng-bind-html="check.info | limitTo : 50"></div>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
     <img ng-if="check.iconSrc"
          src="{{check.iconSrc}}"
          width="20"
-         height="20"/>
+         height="20" />
 </div>
 
 <div class="check-metainfo">
