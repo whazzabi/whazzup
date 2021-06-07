@@ -63,6 +63,10 @@ public class CloudWatchCheckExecutor implements CheckExecutor<CloudWatchCheck> {
                 .withCheckResultIdentifier(check.getRegion() + "_" + name)
                 .withTeamNames(teamMapper.map(metricAlarm));
 
+        String awsRegion = check.getRegion();
+        String alarmNameForLinks = metricAlarm.getAlarmName().replaceAll(" ", "+");
+        checkResult.withLink("https://" + awsRegion + ".console.aws.amazon.com/cloudwatch/home?region=" + awsRegion + "#alarmsV2:alarm/" + alarmNameForLinks + "?");
+
         return checkResultDecorator.decorate(checkResult, check, metricAlarm);
     }
 

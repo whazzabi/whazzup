@@ -25,9 +25,9 @@ body {
     float: none;
 }
 
-.panel-content-left a > div:nth-child(2) {
-    display: none;
-}
+/*.panel-content-left a > div:nth-child(2) {*/
+/*    display: none;*/
+/*}*/
 
 .panel-content-right {
     float: none;

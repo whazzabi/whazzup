@@ -5,10 +5,9 @@ import io.github.whazzabi.whazzup.business.check.checkresult.CheckResult;
 import io.github.whazzabi.whazzup.business.customization.Group;
 import io.github.whazzabi.whazzup.business.github.GithubConfig;
 import io.github.whazzabi.whazzup.business.github.common.GithubClient;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubRepo;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflow;
-import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRun;
+import io.github.whazzabi.whazzup.business.github.common.api.*;
 import io.github.whazzabi.whazzup.presentation.State;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
 
 import java.util.List;
@@ -17,19 +16,24 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class GithubActionsCheckExecutorTest {
 
     public static final String ORG = "orgs/whazzabi";
     public static final GithubConfig GITHUB_CONFIG = new GithubConfig("username", "password");
     public static final String WORKFLOW_NAME = "workflowName";
+    public static final String COMMIT_MESSAGE = "my-message";
+    public static final String COMMIT_AUTHOR = "my-author";
 
-    private GithubClient client = mock(GithubClient.class);
+    private GithubClient client = spy(new GithubClient(mock(CloseableHttpClient.class)));
     private GithubActionsCheckExecutor executor = new GithubActionsCheckExecutor(client);
+
+//    @BeforeEach
+//    public void beforeEach() {
+//        doReturn(mock(CloseableHttpClient.class)).when(client).getCl
+//    }
 
     @Test
     public void convertsConclusionToCorrectState() {
@@ -46,13 +50,13 @@ public class GithubActionsCheckExecutorTest {
         assertThat(checkResults.size()).isEqualTo(3);
         assertThat(checkResults.get(0).getState()).isEqualTo(State.GREEN);
         assertThat(checkResults.get(0).getName()).isEqualTo("repo1/main");
-        assertThat(checkResults.get(0).getInfo()).isEqualTo(WORKFLOW_NAME);
+        assertThat(checkResults.get(0).getInfo()).isEqualTo("my-message [my-author]");
         assertThat(checkResults.get(1).getState()).isEqualTo(State.RED);
         assertThat(checkResults.get(1).getName()).isEqualTo("repo2/main");
-        assertThat(checkResults.get(1).getInfo()).isEqualTo(WORKFLOW_NAME);
+        assertThat(checkResults.get(1).getInfo()).isEqualTo("my-message [my-author]");
         assertThat(checkResults.get(2).getState()).isEqualTo(State.GREY);
         assertThat(checkResults.get(2).getName()).isEqualTo("repo3/main");
-        assertThat(checkResults.get(2).getInfo()).isEqualTo(WORKFLOW_NAME);
+        assertThat(checkResults.get(2).getInfo()).isEqualTo("my-message [my-author]");
     }
 
     @Test
@@ -100,8 +104,8 @@ public class GithubActionsCheckExecutorTest {
         List<CheckResult> checkResults = executor.executeCheck(check);
 
         assertThat(checkResults.size()).isEqualTo(3);
-        assertThat(checkResults.get(0).getName()).isEqualTo("repo1/master");
-        assertThat(checkResults.get(1).getName()).isEqualTo("repo1/develop");
+        assertThat(checkResults.get(0).getName()).isEqualTo("repo1/develop");
+        assertThat(checkResults.get(1).getName()).isEqualTo("repo1/master");
         assertThat(checkResults.get(2).getName()).isEqualTo("repo2/main");
     }
 
@@ -121,11 +125,11 @@ public class GithubActionsCheckExecutorTest {
 
         assertThat(checkResults.size()).isEqualTo(3);
         assertThat(checkResults.get(0).getName()).isEqualTo("repo1/main");
-        assertThat(checkResults.get(0).getInfo()).isEqualTo("workflow1");
+        assertThat(checkResults.get(0).getInfo()).isEqualTo("my-message [my-author]");
         assertThat(checkResults.get(1).getName()).isEqualTo("repo1/main");
-        assertThat(checkResults.get(1).getInfo()).isEqualTo("workflow2");
+        assertThat(checkResults.get(1).getInfo()).isEqualTo("my-message [my-author]");
         assertThat(checkResults.get(2).getName()).isEqualTo("repo2/main");
-        assertThat(checkResults.get(2).getInfo()).isEqualTo(WORKFLOW_NAME);
+        assertThat(checkResults.get(2).getInfo()).isEqualTo("my-message [my-author]");
     }
 
     private GithubRepo repository(String name, WorkflowRunsOfBranch... workflowRunsOfBranches) {
@@ -135,19 +139,17 @@ public class GithubActionsCheckExecutorTest {
 
         List<GithubWorkflow> workflows = singletonList(workflow());
 
-        when(client.getActiveWorkflowsOfRepo(eq(GITHUB_CONFIG), eq(repo)))
-                .thenReturn(workflows);
+        doReturn(workflows).when(client).getActiveWorkflowsOfRepo(eq(GITHUB_CONFIG), eq(repo));
 
         for (WorkflowRunsOfBranch workflowRunOfBranch : workflowRunsOfBranches) {
-            when(client.getLastWorkflowRunsOfBranch(eq(GITHUB_CONFIG), eq(repo), eq(workflows), eq(workflowRunOfBranch.branch)))
-                    .thenReturn(workflowRunOfBranch.runs);
+            doReturn(workflowRunOfBranch.runs).when(client).getLastWorkflowRunsOfBranch(eq(GITHUB_CONFIG), eq(repo), eq(workflows), eq(workflowRunOfBranch.branch));
         }
 
         return repo;
     }
 
     private void repositoriesExist(GithubRepo... repositories) {
-        when(client.getRepositories(eq(ORG), anyString(), eq(GITHUB_CONFIG))).thenReturn(asList(repositories));
+        doReturn(asList(repositories)).when(client).getRepositories(eq(ORG), eq(GITHUB_CONFIG));
     }
 
     private GithubActionsCheck check(String fullyQualifiedName, String repoNameRegex) {
@@ -184,7 +186,7 @@ public class GithubActionsCheckExecutorTest {
     }
 
     private static GithubWorkflowRun workflowRun(String branch, String conclusion) {
-        GithubWorkflowRun run = new GithubWorkflowRun();
+        GithubWorkflowRun run = workflowRun();
         run.name = WORKFLOW_NAME;
         run.head_branch = branch;
         run.conclusion = conclusion;
@@ -192,10 +194,21 @@ public class GithubActionsCheckExecutorTest {
     }
 
     private static GithubWorkflowRun workflowRunOfWorkflow(String branch, String workflowName) {
-        GithubWorkflowRun run = new GithubWorkflowRun();
+        GithubWorkflowRun run = workflowRun();
         run.name = workflowName;
         run.head_branch = branch;
         run.conclusion = "success";
+        return run;
+    }
+
+    private static GithubWorkflowRun workflowRun() {
+        GithubWorkflowRun run = new GithubWorkflowRun();
+        run.name = WORKFLOW_NAME;
+        run.head_commit = new GithubWorkflowRunHeadCommit();
+        run.head_commit.message = COMMIT_MESSAGE;
+
+        run.head_commit.author = new GithubCommitAuthor();
+        run.head_commit.author.name = COMMIT_AUTHOR;
         return run;
     }
 
