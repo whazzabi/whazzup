@@ -34,21 +34,31 @@ public class CloudWatchTeamMapper {
                 .collect(toList());
     }
 
-    private Stream<String> mapToTeam(Map.Entry<String, List<String>> regexesForTeam, String alarmName) {
-        String team = regexesForTeam.getKey();
-        List<String> regexes = regexesForTeam.getValue();
+    private Stream<String> mapToTeam(Map.Entry<String, MappingPredicates> predicatesForTeam, String alarmName) {
+        String team = predicatesForTeam.getKey();
+        MappingPredicates predicates = predicatesForTeam.getValue();
 
-        boolean matches = regexes.stream().anyMatch(regex -> {
-            Pattern pattern = compileOrGetCachedPattern(regex);
+        boolean includeMatches = predicates.getIncludes().stream().anyMatch(regex -> {
+            Pattern pattern = compileOrGetCachedPattern(regex.toLowerCase());
 
-            return pattern.matcher(alarmName).matches();
+            return pattern.matcher(alarmName.toLowerCase()).matches();
         });
 
-        if (matches) {
-            return Stream.of(team);
-        } else {
+        if (!includeMatches) {
             return Stream.empty();
         }
+
+        boolean excludeMatches = predicates.getExcludes().stream().anyMatch(regex -> {
+            Pattern pattern = compileOrGetCachedPattern(regex.toLowerCase());
+
+            return pattern.matcher(alarmName.toLowerCase()).matches();
+        });
+
+        if (excludeMatches) {
+            return Stream.empty();
+        }
+
+        return Stream.of(team);
     }
 
     private Pattern compileOrGetCachedPattern(String regex) {
