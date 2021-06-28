@@ -11,6 +11,7 @@ import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflow;
 import io.github.whazzabi.whazzup.business.github.common.api.GithubWorkflowRun;
 import io.github.whazzabi.whazzup.presentation.State;
 import io.github.whazzabi.whazzup.util.ConncurrentList;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,11 @@ public class GithubActionsCheckExecutor implements CheckExecutor<GithubActionsCh
     }
 
     private State stateOfRun(GithubWorkflowRun run) {
+        // This means there is no conclusion and it is still running
+        if (StringUtils.isBlank(run.conclusion)) {
+            return State.GREY;
+        }
+
         // https://docs.github.com/en/free-pro-team@latest/rest/reference/checks#create-a-check-run
         // success, failure, neutral, cancelled, skipped, timed_out, or action_required.
         switch (run.conclusion) {
