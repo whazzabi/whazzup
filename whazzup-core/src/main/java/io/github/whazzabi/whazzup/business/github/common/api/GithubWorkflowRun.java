@@ -14,6 +14,8 @@ public class GithubWorkflowRun {
     public String html_url;
     public String head_branch;
 
+    public String created_at;
+    public String updated_at;
     public GithubWorkflowRunHeadCommit head_commit;
 
 //{

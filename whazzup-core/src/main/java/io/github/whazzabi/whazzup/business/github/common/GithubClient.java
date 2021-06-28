@@ -26,6 +26,8 @@ public class GithubClient {
 
     private final Map<String, List<GithubWorkflow>> WORKFLOWS_CACHE = CacheBuilder.cache(15, ChronoUnit.MINUTES);
     private final Map<String, List<GithubRepo>> REPO_CACHE = CacheBuilder.cache(15, ChronoUnit.MINUTES);
+    private final Map<String, List<GithubCommit>> COMMITS_CACHE = CacheBuilder.cache(5, ChronoUnit.MINUTES);
+    private final Map<String, GithubWorkflowRunsResponse> WORKFLOW_RUNS_CACHE = CacheBuilder.cache(5, ChronoUnit.MINUTES);
 
     public GithubClient(CloseableHttpClient closeableHttpClient) {
         this.closeableHttpClient = closeableHttpClient;
@@ -98,7 +100,7 @@ public class GithubClient {
 
         GithubWorkflowsResponse response = restClient.get(repo.url + "/actions/workflows", GithubWorkflowsResponse.class);
         List<GithubWorkflow> result = response.workflows.stream()
-                .filter(wf -> "active".equals(wf.state))
+                .filter(wf -> "active" .equals(wf.state))
                 .collect(toList());
         WORKFLOWS_CACHE.put(repo.url, result);
         return result;
@@ -115,6 +117,40 @@ public class GithubClient {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(toList());
+    }
+
+    private GithubWorkflowRunsResponse getWorkflowRuns(GithubConfig githubConfig, String repositoryWithOwner, String githubActionFileName, String branch) {
+        String cacheKey = repositoryWithOwner + githubActionFileName + branch;
+        GithubWorkflowRunsResponse cacheResult = WORKFLOW_RUNS_CACHE.get(cacheKey);
+        if (cacheResult != null) {
+            return cacheResult;
+        }
+
+        CloseableHttpClientRestClient restClient = client(githubConfig);
+        restClient.setQueryParameter("branch", branch);
+
+        GithubWorkflowRunsResponse result = restClient.get("https://api.github.com/repos/" + repositoryWithOwner + "/actions/workflows/" + githubActionFileName + "/runs", GithubWorkflowRunsResponse.class);
+        WORKFLOW_RUNS_CACHE.put(cacheKey, result);
+        return result;
+    }
+
+
+    public List<GithubCommit> loadCommits(GithubConfig githubConfig, String repositoryWithOwner) {
+        return this.loadCommits(githubConfig, repositoryWithOwner, "master");
+    }
+
+    public List<GithubCommit> loadCommits(GithubConfig githubConfig, String repositoryWithOwner, String branch) {
+        List<GithubCommit> cacheResult = COMMITS_CACHE.get(repositoryWithOwner);
+        if (cacheResult != null) {
+            return cacheResult;
+        }
+
+        final CloseableHttpClientRestClient restClient = client(githubConfig);
+        restClient.setQueryParameter("branch", branch);
+        // eg. https://api.github.com/repos/Egoditor/php-example-app/commits
+        List<GithubCommit> result = Arrays.asList(restClient.get("https://api.github.com/repos/" + repositoryWithOwner + "/commits", GithubCommit[].class));
+        COMMITS_CACHE.put(repositoryWithOwner, result);
+        return result;
     }
 
     private int counter = 0;
