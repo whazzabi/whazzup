@@ -30,7 +30,7 @@ public class GithubStaleBranchesCheckExecutor implements CheckExecutor<GithubSta
 
     @Override
     public List<CheckResult> executeCheck(GithubStaleBranchesCheck check) {
-        LOG.info("Executing Github-Stale-Branches-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
+        LOG.debug("Executing Github-Stale-Branches-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
 
         GithubConfig githubConfig = check.githubConfig();
         List<CheckResult> checkResults = new ArrayList<>();

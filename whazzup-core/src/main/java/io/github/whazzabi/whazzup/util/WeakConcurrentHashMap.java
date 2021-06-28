@@ -1,11 +1,17 @@
 package io.github.whazzabi.whazzup.util;
 
+import io.github.whazzabi.whazzup.business.github.common.GithubRepositoryMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WeakConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WeakConcurrentHashMap.class);
 
     private Map<K, Long> timeMap = new ConcurrentHashMap<>();
     private long expiryInMillis = 1000;
@@ -50,7 +56,7 @@ public class WeakConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
     class CleanerThread extends Thread {
         @Override
         public void run() {
-            System.out.println("Initiating Cleaner Thread..");
+            LOG.debug("Initiating Cleaner Thread..");
             while (true) {
                 cleanMap();
                 try {
@@ -67,7 +73,7 @@ public class WeakConcurrentHashMap<K, V> extends ConcurrentHashMap<K, V> {
                 if (currentTime > (timeMap.get(key) + expiryInMillis)) {
                     V value = remove(key);
                     timeMap.remove(key);
-                    System.out.println("Removing : " + sdf.format(new Date()) + " : " + key + " : " + value);
+                    LOG.debug("Removing : " + sdf.format(new Date()) + " : " + key + " : " + value);
                 }
             }
         }

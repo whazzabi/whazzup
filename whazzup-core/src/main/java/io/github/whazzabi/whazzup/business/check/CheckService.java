@@ -52,11 +52,11 @@ public class CheckService {
     @SuppressWarnings("unchecked")
     private List<CheckResult> executeCheck(Check check) {
         if (counterOfCheckRuns % check.runEachNthCheck() != 0) {
-            LOG.info("Returning CACHE and skipping check: " + check);
+            LOG.debug("Returning CACHE and skipping check: " + check);
             if (CACHE.containsKey(check)) {
                 return CACHE.get(check);
             } else {
-                LOG.warn("CACHE empty for check: " + check);
+                LOG.debug("CACHE empty for check: " + check);
                 CACHE.forEach((key, value) -> LOG.warn(" # CACHE-ENTRY: " + key));
             }
         }

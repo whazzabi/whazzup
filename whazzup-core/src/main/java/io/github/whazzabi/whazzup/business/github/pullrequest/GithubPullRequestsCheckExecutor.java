@@ -35,7 +35,7 @@ public class GithubPullRequestsCheckExecutor implements CheckExecutor<GithubPull
 
     @Override
     public List<CheckResult> executeCheck(GithubPullRequestsCheck check) {
-        LOG.info("Executing Github-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
+        LOG.debug("Executing Github-Pull-Request-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
 
         GithubConfig githubConfig = check.githubConfig();
         List<CheckResult> checkResults = new ConncurrentList<>();

@@ -63,7 +63,7 @@ public class GithubRepositoryMatcher {
                 .filter(repo -> isFilterArchivedRepos ? !repo.archived : true)
                 .collect(toList());
 
-        LOG.info("Found " + result.size() + " (from " + githubRepos.size() + " repos overall) matching Repos for filter: " + this.toString());
+        LOG.debug("Found " + result.size() + " (from " + githubRepos.size() + " repos overall) matching Repos for filter: " + this.toString());
         return result;
     }
 

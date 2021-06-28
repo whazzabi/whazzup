@@ -32,7 +32,7 @@ public class GithubActionsCheckExecutor implements CheckExecutor<GithubActionsCh
 
     @Override
     public List<CheckResult> executeCheck(GithubActionsCheck check) {
-        LOG.info("Executing Github-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
+        LOG.debug("Executing Github-Actions-Check: {} for Github-Account {}", check.getName(), check.githubFullyQualifiedName());
 
         GithubConfig githubConfig = check.githubConfig();
         List<CheckResult> checkResults = new ConncurrentList<>();
